@@ -83,3 +83,69 @@ Earlyma now uses a queued notification layer (`notifications.js`) instead of pre
 - Failed delivery attempts stay queued and retry with exponential backoff until the attempt limit is reached
 - Keep SMS credentials on a backend or secure proxy; do not expose provider keys in browser code
 - Delivery receipts and inbound replies such as `press 1` should be handled by webhook endpoints on that backend
+
+## Authentication: local demo vs secure server
+
+The app ships with a clearly-labelled **local demo** authentication so it can run
+offline with no backend. Passwords are hashed with PBKDF2 in the browser and
+accounts are stored in browser storage. **This is not a production security
+boundary.**
+
+For real deployments, run the included secure server and point the app at it:
+
+```bash
+# 1. Configure the server (never expose these to the browser)
+cp .env.example .env
+# set AUTH_SECRET to a long random value
+
+# 2. Start the auth server (scrypt hashing, HMAC-signed HttpOnly session cookie)
+npm run server
+
+# 3. Point the app at the server and use it instead of local auth
+#    VITE_AUTH_API_URL=http://localhost:3001
+```
+
+With `VITE_AUTH_API_URL` set:
+
+- Credentials are verified server-side; the browser only mirrors the returned profile.
+- Passwords are hashed with scrypt and sessions use an HttpOnly, SameSite cookie.
+- New CHW accounts are created as **pending** and require administrator approval
+  (the first account becomes the administrator).
+- Password recovery is verified server-side from the registered email + phone.
+- Duplicate email/phone accounts are rejected on the server.
+
+Set `AUTH_ALLOWED_ORIGIN` to the exact app origin (for example
+`https://earlyma.example.org`). A wildcard cannot be combined with the session
+cookie, so leave it unset only for same-origin deployments.
+
+Each CHW receives a unique registration ID (`CHW-0001`, `CHW-0002`, …). The server
+keeps credentials and sessions; the browser stores only the profile and clinical
+data it needs to work offline.
+
+> Always put the server behind HTTPS and set `AUTH_COOKIE_SECURE=true` in
+> production. Client-side checks are a convenience, not authorization.
+
+## Automated tests
+
+```bash
+# Unit / integration tests (Vitest + jsdom)
+npm test
+
+# End-to-end tests against the production build (Playwright)
+npm run test:e2e          # local demo auth
+npm run test:e2e:remote   # remote server auth (starts server + preview)
+npm run test:e2e:all      # both
+```
+
+First-time E2E setup installs a browser:
+
+```bash
+npx playwright install chromium
+```
+
+The local suite (`e2e/local`) covers registration, login/logout, wrong-password
+handling, password recovery, duplicate prevention, worker and mother creation,
+navigation, en/sw switching, and no-horizontal-scroll at 320/375/430px. The remote
+suite (`e2e/remote`) boots `server/index.mjs` with a temporary data directory and
+verifies the HttpOnly session cookie, login/logout, and server-side duplicate
+rejection. Both run against the real production build served by `vite preview`.

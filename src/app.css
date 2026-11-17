@@ -1,0 +1,403 @@
+:root {
+  color-scheme: light;
+  /* Comfortable base size for readable text on affordable phones. */
+  font-size: 16px;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  /* Never allow a stray wide element to scroll the whole page sideways. */
+  overflow-x: hidden;
+  background:
+    radial-gradient(1200px 600px at 100% -10%, #ccfbf1 0%, transparent 55%),
+    radial-gradient(900px 500px at -10% 0%, #dbeafe 0%, transparent 50%),
+    #f6f8fb;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+}
+
+.page-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding-bottom: 32px;
+}
+
+.page-title {
+  font-size: clamp(1.45rem, 1.1rem + 1.2vw, 2rem);
+  letter-spacing: -0.02em;
+}
+
+.brand-button {
+  border-radius: 12px;
+  padding: 2px 4px;
+}
+
+.brand-button:hover {
+  background: #f1f5f9;
+}
+
+.nav-section-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  padding: 8px 10px 4px;
+}
+
+.nav-count {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-user {
+  width: 100%;
+  padding: 8px;
+  border-radius: 12px;
+  text-align: left;
+}
+
+.sidebar-user:hover {
+  background: #f1f5f9;
+}
+
+.online-pill {
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #fff;
+}
+
+.stat-card,
+.mini-stat {
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+  height: 100%;
+}
+
+.stat-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  height: 100%;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  border-color: #99f6e4;
+}
+
+.stat-card-emphasis {
+  border-color: #f97316;
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.25);
+}
+
+.mini-stat[role='button'] {
+  cursor: pointer;
+}
+
+.mini-stat[role='button']:hover {
+  border-color: #5eead4;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+}
+
+.bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: #eef2f7;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 240ms ease;
+}
+
+.visit-row,
+.notification-row {
+  background: #fff;
+}
+
+.visit-row:hover,
+.notification-row:hover {
+  border-color: #99f6e4;
+}
+
+.next-visit-box {
+  background: linear-gradient(135deg, #f0fdfa, #eff6ff);
+  border: 1px solid #ccfbf1;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.toast-viewport {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 5000;
+  width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toast-card {
+  pointer-events: auto;
+  background: #fff;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.16);
+}
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+}
+
+.auth-hero {
+  padding: clamp(28px, 5vw, 64px);
+  color: #fff;
+  background:
+    radial-gradient(900px 500px at 10% 0%, rgba(45, 212, 191, 0.45) 0%, transparent 55%),
+    radial-gradient(700px 500px at 90% 100%, rgba(37, 99, 235, 0.4) 0%, transparent 55%),
+    linear-gradient(145deg, #0f766e 0%, #115e59 45%, #0f172a 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.auth-title {
+  font-size: clamp(1.8rem, 1.2rem + 2vw, 2.9rem);
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.auth-language .mantine-SegmentedControl-root {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.auth-feature {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+.auth-form-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 4vw, 48px);
+}
+
+.auth-card {
+  width: min(560px, 100%);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+}
+
+@media (max-width: 62em) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-hero {
+    padding: 28px 20px;
+  }
+
+  .auth-form-wrap {
+    padding: 20px 14px 36px;
+  }
+}
+
+/* Phone-sized auth: keep the form front and centre, trim the marketing copy. */
+@media (max-width: 48em) {
+  .auth-features,
+  .auth-hero-alert {
+    display: none;
+  }
+
+  .auth-hero {
+    padding: 20px 16px 22px;
+  }
+
+  .auth-title {
+    font-size: 1.6rem;
+  }
+
+  .auth-card {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 30em) {
+  .auth-form-wrap {
+    padding: 14px 10px 28px;
+  }
+
+  .auth-hero {
+    padding: 18px 14px;
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .mantine-AppShell-header,
+  .mantine-AppShell-navbar,
+  .bottom-nav,
+  .toast-viewport,
+  button {
+    display: none !important;
+  }
+
+  .mantine-AppShell-main {
+    padding: 0 !important;
+  }
+
+  .page-container {
+    max-width: 100%;
+  }
+
+  .mantine-Card-root {
+    break-inside: avoid;
+    box-shadow: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Mobile-first behaviour (phones and small tablets)
+   Keep important actions thumb-reachable and text readable without zooming.
+--------------------------------------------------------------------------- */
+
+/* Comfortable, thumb-sized tap targets on touch screens. */
+@media (max-width: 48em) {
+  .mantine-Button-root {
+    min-height: 44px;
+  }
+
+  .mantine-ActionIcon-root {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .mantine-TextInput-input,
+  .mantine-Select-input,
+  .mantine-Textarea-input,
+  .mantine-NumberInput-input,
+  .mantine-PasswordInput-input {
+    min-height: 46px;
+    font-size: 1rem;
+  }
+
+  /* Give content breathing room above the fixed bottom navigation. */
+  .app-main {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .page-container {
+    padding-bottom: 16px;
+  }
+
+  /* Keep the connection label hidden on very narrow screens so the header
+     never crowds the brand, language switch and profile. */
+  .connection-label {
+    display: none;
+  }
+}
+
+/* Fixed bottom navigation for one-handed phone use. */
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 200;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -6px 20px rgba(15, 23, 42, 0.06);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 4px 2px;
+  border-radius: 12px;
+  color: #64748b;
+  text-align: center;
+}
+
+.bottom-nav-item-active {
+  color: #0f766e;
+  background: #f0fdfa;
+}
+
+.bottom-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-nav-label {
+  font-size: 0.66rem;
+  font-weight: 650;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bottom-nav-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  border: 2px solid #fff;
+}
+
+/* Respect users who prefer reduced motion (and save battery on cheap phones). */
+@media (prefers-reduced-motion: reduce) {
+  .stat-card,
+  .mini-stat,
+  .bar-fill,
+  .stat-card:hover,
+  .mini-stat[role='button']:hover {
+    transition: none;
+    transform: none;
+    box-shadow: none;
+  }
+}

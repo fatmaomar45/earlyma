@@ -199,3 +199,31 @@ Required server environment variables:
 
 The first registered account becomes the administrator. Accounts are active
 immediately; there is no approval step.
+
+## Deploy to Vercel
+
+The repo includes `api/*` serverless functions that reuse `server/index.mjs`, plus
+`vercel.json` for the Vite SPA. Import the repository in Vercel or run:
+
+```bash
+vercel --prod --yes --name earlyma
+```
+
+Set these project environment variables:
+
+| Variable | Value |
+| --- | --- |
+| `AUTH_SECRET` | Long random string (secret). |
+| `AUTH_COOKIE_SECURE` | `true` (Vercel is HTTPS). |
+| `AUTH_DATA_DIR` | `/tmp` (the only writable path on Vercel). |
+| `VITE_AUTH_API_URL` | `https://<your-app>.vercel.app` (build-time). |
+
+`VITE_AUTH_API_URL` is required because Vercel serves the built `index.html`
+directly, so the server's meta-tag injection is bypassed. Pointing it at the
+production origin makes the client call the same-origin `/api` functions.
+
+> **Storage warning:** Vercel has no persistent disk. Credentials live in `/tmp`
+> and reset when an instance is recycled, and different instances can have
+> different account data. This is fine for a demo but **not** for durable
+> accounts. For production, move the credential store to a persistent database
+> (Vercel Postgres, Upstash Redis, MongoDB Atlas, …).

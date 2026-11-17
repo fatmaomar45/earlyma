@@ -1,0 +1,26 @@
+# Render blueprint for Earlyma.
+# The Node server serves the built frontend and the API from one origin, so the
+# session cookie works without CORS. A disk keeps the credential database durable.
+#
+# Note: Render disks require a paid instance. On a free instance, omit the disk
+# and accept that the credential store resets on redeploy (or point AUTH_DATA_DIR
+# at an external persistent volume).
+services:
+  - type: web
+    name: earlyma
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npm run build
+    startCommand: node server/index.mjs
+    healthCheckPath: /api/health
+    envVars:
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: AUTH_DATA_DIR
+        value: /var/data
+      - key: AUTH_COOKIE_SECURE
+        value: "true"
+    disk:
+      name: earlyma-data
+      mountPath: /var/data
+      sizeGB: 1

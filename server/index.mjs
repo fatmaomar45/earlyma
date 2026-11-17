@@ -18,12 +18,13 @@ import {
   scrypt as scryptCallback,
   timingSafeEqual,
 } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
+import { dirname, extname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const DATA_DIR = process.env.AUTH_DATA_DIR || join(__dirname, 'data')
+const STATIC_DIR = process.env.STATIC_DIR || join(__dirname, '..', 'dist')
 const DATA_FILE = join(DATA_DIR, 'db.json')
 const SECRET_FILE = join(DATA_DIR, 'secret')
 const SESSION_TTL_SECONDS = Number(process.env.AUTH_SESSION_TTL || 12 * 60 * 60)
@@ -478,6 +479,92 @@ async function handleReject(req, res, body) {
 }
 
 // ---------------------------------------------------------------------------
+// Static frontend (single-process deployment: API + built SPA on one origin)
+// ---------------------------------------------------------------------------
+
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.txt': 'text/plain; charset=utf-8',
+  '.map': 'application/json; charset=utf-8',
+}
+
+const AUTH_META = '<meta name="earlyma-auth-api" content="" />'
+
+function readIndexHtml() {
+  const indexPath = join(STATIC_DIR, 'index.html')
+  const raw = readFileSync(indexPath, 'utf8')
+  if (raw.includes('name="earlyma-auth-api"')) return raw
+  // Marks the app to use same-origin remote auth (see src/lib/authApi.js).
+  return raw.replace('</head>', `    ${AUTH_META}\n  </head>`)
+}
+
+function sendIndexHtml(req, res) {
+  const html = readIndexHtml()
+  const body = Buffer.from(html, 'utf8')
+  res.statusCode = 200
+  res.setHeader('Content-Type', MIME_TYPES['.html'])
+  res.setHeader('Content-Length', body.length)
+  res.setHeader('Cache-Control', 'no-cache')
+  res.end(req.method === 'HEAD' ? undefined : body)
+  return true
+}
+
+function serveStatic(req, res, pathname) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return false
+  const root = resolve(STATIC_DIR)
+  if (!existsSync(join(root, 'index.html'))) return false
+
+  let decoded
+  try {
+    decoded = decodeURIComponent(pathname)
+  } catch {
+    return false
+  }
+  const relative = decoded.replace(/^\/+/, '') || 'index.html'
+  let filePath = resolve(root, relative)
+  if (filePath !== root && !filePath.startsWith(root + sep)) return false
+
+  let isFile = false
+  try {
+    const stats = statSync(filePath)
+    if (stats.isDirectory()) {
+      filePath = join(filePath, 'index.html')
+      isFile = true
+    } else {
+      isFile = true
+    }
+  } catch {
+    // Unknown path: serve the SPA shell for extension-less routes only.
+    if (extname(relative)) return false
+    return sendIndexHtml(req, res)
+  }
+
+  if (!isFile) return false
+  if (extname(filePath).toLowerCase() === '.html') return sendIndexHtml(req, res)
+
+  const body = readFileSync(filePath)
+  const ext = extname(filePath).toLowerCase()
+  res.statusCode = 200
+  res.setHeader('Content-Type', MIME_TYPES[ext] || 'application/octet-stream')
+  res.setHeader('Content-Length', body.length)
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
+  res.end(req.method === 'HEAD' ? undefined : body)
+  return true
+}
+
+// ---------------------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------------------
 
@@ -513,6 +600,10 @@ export async function handleRequest(req, res) {
   if (req.method === 'POST' && path === '/api/workers/reject') {
     return handleReject(req, res, await readJsonBody(req))
   }
+
+  // Serve the built SPA for any other route (single-process deployment).
+  if (!path.startsWith('/api') && serveStatic(req, res, path)) return undefined
+
   return send(res, 404, { error: 'notFound', code: 'notFound' })
 }
 

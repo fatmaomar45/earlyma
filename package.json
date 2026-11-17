@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:remote": "playwright test -c playwright.remote.config.js",
-    "test:e2e:all": "playwright test && playwright test -c playwright.remote.config.js",
+    "test:e2e:single": "playwright test -c playwright.single.config.js",
+    "test:e2e:all": "playwright test && playwright test -c playwright.remote.config.js && playwright test -c playwright.single.config.js",
     "server": "node server/index.mjs"
   },
   "dependencies": {

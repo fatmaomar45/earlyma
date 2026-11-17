@@ -109,8 +109,8 @@ With `VITE_AUTH_API_URL` set:
 
 - Credentials are verified server-side; the browser only mirrors the returned profile.
 - Passwords are hashed with scrypt and sessions use an HttpOnly, SameSite cookie.
-- New CHW accounts are created as **pending** and require administrator approval
-  (the first account becomes the administrator).
+- Accounts are active immediately: the first account becomes the administrator,
+  later accounts are community health workers. Approval is not required.
 - Password recovery is verified server-side from the registered email + phone.
 - Duplicate email/phone accounts are rejected on the server.
 
@@ -134,7 +134,8 @@ npm test
 # End-to-end tests against the production build (Playwright)
 npm run test:e2e          # local demo auth
 npm run test:e2e:remote   # remote server auth (starts server + preview)
-npm run test:e2e:all      # both
+npm run test:e2e:single   # single-process production server (dist + API)
+npm run test:e2e:all      # all three suites
 ```
 
 First-time E2E setup installs a browser:
@@ -148,4 +149,53 @@ handling, password recovery, duplicate prevention, worker and mother creation,
 navigation, en/sw switching, and no-horizontal-scroll at 320/375/430px. The remote
 suite (`e2e/remote`) boots `server/index.mjs` with a temporary data directory and
 verifies the HttpOnly session cookie, login/logout, and server-side duplicate
-rejection. Both run against the real production build served by `vite preview`.
+rejection. The single suite (`e2e/single`) serves the built `dist/` from the Node
+server and verifies same-origin remote auth. All run against the real production
+build.
+
+## Deployment (single process)
+
+`server/index.mjs` serves the built frontend (`dist/`) **and** the `/api` routes
+from one origin. It injects a `earlyma-auth-api` meta tag into `index.html`, so
+the app automatically uses server-backed auth without any CORS or extra static
+hosting. Persistent data lives in `AUTH_DATA_DIR` (default `/var/data`).
+
+Docker:
+
+```bash
+docker build -t earlyma .
+docker run -p 3000:3001 \
+  -e AUTH_SECRET="$(openssl rand -hex 32)" \
+  -e AUTH_COOKIE_SECURE=true \
+  -v earlyma-data:/var/data \
+  earlyma
+```
+
+Render: this repo includes `render.yaml` (Node web service + 1 GB disk). In the
+Render dashboard choose **New → Blueprint**, pick this repository, and deploy.
+Disks require a paid instance; without one, omit the disk and the credential
+store resets on redeploy.
+
+Any Node host / VPS:
+
+```bash
+npm ci && npm run build
+AUTH_SECRET="<long-random>" \
+AUTH_DATA_DIR="/var/lib/earlyma" \
+AUTH_COOKIE_SECURE=true \
+PORT=3001 \
+node server/index.mjs
+```
+
+Required server environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `AUTH_SECRET` | HMAC key for session cookies. Set a long random value in production. |
+| `AUTH_DATA_DIR` | Persistent directory for `db.json` and the generated secret. |
+| `AUTH_COOKIE_SECURE` | `true` behind HTTPS so the cookie is only sent over TLS. |
+| `PORT` | Port to listen on (default `3001`). |
+| `AUTH_ALLOWED_ORIGIN` | Only needed when the API is hosted on a different origin than the app. |
+
+The first registered account becomes the administrator. Accounts are active
+immediately; there is no approval step.

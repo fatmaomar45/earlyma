@@ -9,12 +9,23 @@
 
 const env = (typeof import.meta !== 'undefined' && import.meta.env) || {}
 
+function authMeta() {
+  if (typeof document === 'undefined') return null
+  return document.querySelector('meta[name="earlyma-auth-api"]')
+}
+
 export function getAuthApiUrl() {
+  // A meta tag injected by server/index.mjs selects same-origin auth; an empty
+  // content means "this origin". Otherwise fall back to the build-time env var.
+  const meta = authMeta()
+  if (meta) return (meta.getAttribute('content') || '').trim()
   return env.VITE_AUTH_API_URL || ''
 }
 
 export function isRemoteAuthEnabled() {
-  return Boolean(getAuthApiUrl())
+  // Presence of the meta tag is enough to enable remote auth, even when its
+  // content is empty (same-origin single-process deployment).
+  return Boolean(authMeta() || env.VITE_AUTH_API_URL)
 }
 
 export class AuthApiError extends Error {
